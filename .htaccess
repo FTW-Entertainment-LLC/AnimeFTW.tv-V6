@@ -1,0 +1,8 @@
+ErrorDocument 403 /index.php?node=error&type=403
+ErrorDocument 404 /index.php?node=error&type=404
+ErrorDocument 500 /index.php?node=error&type=500
+
+RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule . index.php [L]

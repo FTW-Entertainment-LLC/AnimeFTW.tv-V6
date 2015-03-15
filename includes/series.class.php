@@ -17,4 +17,25 @@ class Series Extends Config  {
 	{
 		return TRUE;
 	}
+	
+	public function showAnimeListings()
+	{
+		return '
+		<div class="news-article">
+			<div class="news-article-header">
+				<div class="news-article-title-information pad-ten-left">
+					<div class="news-article-title">
+						Available Anime
+					</div>
+					<div class="news-article-date">
+						Please keep these in mind when you utilize the site.
+					</div>
+				</div>
+			</div>
+			<div class="news-article-body">
+				<div class="news-article-content">
+				</div>
+			</div>
+		</div>';
+	}
 }

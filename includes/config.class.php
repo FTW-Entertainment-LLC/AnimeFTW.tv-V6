@@ -51,7 +51,7 @@ class Config {
 	private function DB_Con()
 	{
 		
-		if($_SERVER['HTTP_HOST'] == 'dev.animeftw.tv')
+		if($_SERVER['HTTP_HOST'] == 'v6.aftw.ftwdevs.com')
 		{
 			$this->StatsDB 	= 'mainaftw_stats'; // declare the stats DB
 			$this->MainDB 	= 'devadmin_anime'; // Main DB for everything else

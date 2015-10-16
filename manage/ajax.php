@@ -1,5 +1,5 @@
 <?php
-include("../includes/classes/config.class.php");
+include("includes/config.class.php");
 
 
 if(isset($_POST['method']))

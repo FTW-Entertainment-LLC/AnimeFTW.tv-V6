@@ -224,18 +224,50 @@ class Episodes extends Config {
 			}
 			// default to adding an episode
 			$FormMethod = '<input type="hidden" value="AddEpisode" name="method" />';
-			$SubmitTXT = " Add Episode ";
+			$SubmitTXT = " Add Episode(s) ";
 			$options = '';
 			$Type = 'add';
 		}
-		echo '<div id="form_results" class="form_results">&nbsp;</div>';
+		echo '<div class="body-message">Update: If you enter the anidb and episode fields, you won\'t have to enter anything in the "Episode #" and "Episode Name" fields. The same goes the other way around.<br>
+		Keep in mind that this does not add the special episodes on AniDB.<br></div>
+		<div id="form_results" class="form_results">&nbsp;</div>';
 		echo '
+		
 		<form method="POST" action="#" id="EpisodeForm">
 		' . $FormMethod . '
 		' . $options . '
 		<input type="hidden" name="uid" value="' . $this->UserArray[1] . '" />
 		<input type="hidden" name="Authorization" value="0110110101101111011100110110100001101001" id="Authorization" />
-		<div class="series-form-row">
+		<div class="series-form-row" style="border: 1px solid #eeebea;border-bottom: none;">
+			<div class="series-form-left">
+				Anidb ID
+			</div>
+			<div class="series-form-right">
+				<input name="anidbid" id="anidbidnum" type="text" size="25" value="" class="text-input2" />
+				<label for="anidbid" id="anidbError" class="form-labels FormError">AniDB ID is Required</label>
+			</div>
+		</div>
+		<div class="series-form-row" style="border-left: 1px solid #eeebea;border-right: 1px solid #eeebea;">
+			<div class="series-form-left">
+				Episodes
+			</div>
+			<div class="series-form-right">
+				From:
+				<input name="fromep" id="addfromnum" type="number" value="" class="text-input2" style="width:73px;"/>
+				<label for="fromep" id="addfromnumError" class="form-labels FormError">Starting Value is Required</label>
+				To:
+				<input name="toep" id="addtonum" type="number" value="" class="text-input2" style="width:74px;"/>
+				<label for="toep" id="addtonumError" class="form-labels FormError">End Value is Required</label>
+			</div>
+		</div>
+		<div class="series-form-row" style="border-left: 1px solid #eeebea;border-right: 1px solid #eeebea;">
+			<div class="series-form-left">
+			</div>
+			<div class="series-form-right">
+				<span style="display: block;width: 224px;text-align: center;">OR</span>
+			</div>
+		</div>
+		<div class="series-form-row" style="border-left: 1px solid #eeebea;border-right: 1px solid #eeebea;">
 			<div class="series-form-left">
 				Episode #
 			</div>
@@ -244,7 +276,7 @@ class Episodes extends Config {
 				<label for="epnumber" id="epnumberError" class="form-labels FormError">Episode Number is Required</label>
 			</div>
 		</div>
-		<div class="series-form-row">
+		<div class="series-form-row" style="border: 1px solid #eeebea;border-top: none">
 			<div class="series-form-left">
 				Episode Name
 			</div>
@@ -253,7 +285,7 @@ class Episodes extends Config {
 				<label for="epname" id="epnameError" class="form-labels FormError">An episode Name is required</label>
 			</div>
 		</div>
-		<div class="series-form-row">
+		<div class="series-form-row" >
 			<div class="series-form-left">
 				Video Width
 			</div>
@@ -286,6 +318,7 @@ class Episodes extends Config {
 			<div class="series-form-right">
 				<input name="epprefix" id="epprefix" type="text" size="25" value="' . $epprefix . '" class="text-input2" />
 				<label for="epprefix" id="epprefixError" class="form-labels FormError">An Episode Prefix is required.</label>
+				
 			</div>
 		</div>
 		<div class="series-form-row">
@@ -295,20 +328,7 @@ class Episodes extends Config {
 			<div class="series-form-right">
 				<select name="sid" class="text-input2" id="sid">
 				<option value="0">-Choose Series-</option>';
-				
-				$query2 = "SELECT id, fullSeriesName, active FROM series ORDER BY fullSeriesName ASC";
-				$result2 = mysql_query($query2) or die('Error : ' . mysql_error());
-				while(list($id,$fullSeriesName) = mysql_fetch_array($result2, MYSQL_NUM))
-				{
-					$fullSeriesName = stripslashes($fullSeriesName);
-					if(($id == $sid) || (isset($_GET['preseriesname']) && $_GET['preseriesname'] == $id) || ($uesid == $id))
-					{ 
-						echo '<option value="'.$id.'" selected="selected">'.$fullSeriesName.'</option> ';
-					}
-					else {
-					}
-					echo '<option value="'.$id.'">'.$fullSeriesName.'</option> ';
-				}
+				$this->SeriesList();
 			echo '
 				</select>
 			</div>
@@ -435,17 +455,41 @@ class Episodes extends Config {
 				$(".SubmitForm").click(function() {
 					$(\'.form-labels\').hide();
 					var epnumber = $("input#epnumber").val();
-					if (epnumber == "") {
-						$("label#epnumberError").show();
-						$("input#epnumber").focus();
-						return false;
+					if(epnumber==""){ //If epnumber is null, then they want to use the automatic function. so we check for errors there.
+						var anidbid = $("input#anidbidnum").val();
+						if (anidbid == "") {
+							$("label#anidbError").show();
+							$("input#anidbidnum").focus();
+							return false;
+						}
+						var fromep = $("input#addfromnum").val();
+						if (fromep == "") {
+							$("label#addfromnumError").show();
+							$("input#addfromnum").focus();
+							return false;
+						}
+						var toep = $("input#addtonum").val();
+						if (toep == "") {
+							$("label#addtonumError").show();
+							$("input#addtonum").focus();
+							return false;
+						}
 					}
-					var epname = $("input#epname").val();
-					if (epname == "") {
-						$("label#epnameError").show();
-						$("input#epname").focus();
-						return false;
+					if(anidbid == ""&&fromep == ""&&toep == ""){ //Show error for epnumber only if these 3 values are null.
+					//If these 3 values are set, it means the user wants to use the automatic function. If not, they want to use the manual.
+						if (epnumber == "") {
+							$("label#epnumberError").show();
+							$("input#epnumber").focus();
+							return false;
+						}
+						var epname = $("input#epname").val();
+						if (epname == "") {
+							$("label#epnameError").show();
+							$("input#epname").focus();
+							return false;
+						}
 					}
+					
 					var vidwidth = $("input#vidwidth").val();
 					if (vidwidth == "") {
 						$("label#vidwidthError").show();
@@ -464,9 +508,9 @@ class Episodes extends Config {
 						$("input#epprefix").focus();
 						return false;
 					}
-					var sid = $("input#seriesName").val();
+					var sid = $("select#sid").val();
 					if (sid == "0") {
-						$("label#seriesNameError").show();
+						$("label#sidError").show();
 						$("select#sid").focus();
 						return false;
 					}
@@ -486,8 +530,10 @@ class Episodes extends Config {
 					echo '
 					$.ajax({
 						type: "POST",
-						url: "ajax.php",
-						data: $(\'#EpisodeForm\').serialize(),
+						url: "ajax.php",';
+						echo 'data: $(\'#EpisodeForm\').serialize(),';
+						
+						echo '
 						success: function(html) {
 							if(html.indexOf("Success") >= 0){
 					';
@@ -518,11 +564,26 @@ class Episodes extends Config {
 						}
 					});
 					return false;
+				
 				});
 			});
 		</script>';
 	}
-	
+	private function SeriesList(){
+		$query2 = "SELECT id, fullSeriesName, active FROM series ORDER BY fullSeriesName ASC";
+		$result2 = mysql_query($query2) or die('Error : ' . mysql_error());
+		while(list($id,$fullSeriesName) = mysql_fetch_array($result2, MYSQL_NUM))
+		{
+			$fullSeriesName = stripslashes($fullSeriesName);
+			if(($id == $sid) || (isset($_GET['preseriesname']) && $_GET['preseriesname'] == $id) || ($uesid == $id))
+			{ 
+				echo '<option value="'.$id.'" selected="selected">'.$fullSeriesName.'</option> ';
+			}
+			else {
+			}
+			echo '<option value="'.$id.'">'.$fullSeriesName.'</option> ';
+		}
+	}
 	private function deleteEpisode()
 	{
 		if(!isset($_GET['id']) || !is_numeric($_GET['id']))

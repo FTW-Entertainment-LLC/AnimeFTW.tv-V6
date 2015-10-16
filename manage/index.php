@@ -1,9 +1,9 @@
 <?php
-include("../includes/classes/config.class.php");
+include("includes/config.class.php");
 $C = new Config();
 
 // we need to sift out people..
-if($C->UserArray[0] == 0)
+/*if($C->UserArray[0] == 0)
 {
 	header("location: http://www.animeftw.tv/");
 	exit;
@@ -15,7 +15,7 @@ else if($C->UserArray[2] == 3)
 }
 else
 {
-}
+}*/
 
 // make sure that they are on animeftw.tv, that they are using port 443 for ssl
 if($_SERVER['SERVER_PORT'] == '80' && $_SERVER['HTTP_HOST'] == 'www.animeftw.tv')

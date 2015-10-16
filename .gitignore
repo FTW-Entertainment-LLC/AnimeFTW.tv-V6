@@ -1,0 +1,6 @@
+*.log
+error_log
+cache/
+.ftpquota
+.idea/
+downloads/

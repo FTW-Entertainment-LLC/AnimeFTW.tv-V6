@@ -354,7 +354,7 @@ a {
 .news-article-header {
 	border-top-left-radius:6px;
 	border-top-right-radius:6px;
-	background-color:#03a9f4;
+	background-color:#38adf2;
 	margin-bottom:3px;
 	width:100%;
 	height:60px;
@@ -370,6 +370,9 @@ a {
 	vertical-align:top;
 	margin-top:5px;
 	color:#ffffff;
+}
+.news-article-title {
+    color:#fff;
 }
 .news-article-title, .news-article-title a {
 	font-family: 'Economica', sans-serif;
@@ -407,7 +410,6 @@ a {
 }
 .right-content-header {
 	height:34px;
-	width:100%;
 	color:#0277bd;
 	font-size:30px;
 	font-weight:bold;
@@ -431,7 +433,6 @@ a {
 	padding:0 3px 0 3px;
 }
 .right-content-list-number {
-	width:26px;
 	vertical-align:middle;
 	display:inline-block;
 	font-family: 'Economica', sans-serif;
@@ -439,16 +440,11 @@ a {
 	font-style: italic;
 	font-weight:bold;
 	text-align:center;
-	padding-top:2px;
+	margin-top:6px;
 }
 .right-content-list-image {
-	width:42px;
 	vertical-align:middle;
 	text-align:center;
-	display:inline-block;
-	margin-top:-2px;
-	margin-left:-4px;
-	margin-right:4px;
 }
 .right-content-list-content {
 	width:246px;
@@ -458,7 +454,7 @@ a {
 .right-content-list-link {
 	font-size:12px;
 	font-weight:bold;
-	margin:1px 0 2px 0;
+	margin:3px 0 0px 0;
 }
 .right-content-list-details {
 	font-size:12px;
@@ -470,12 +466,23 @@ a {
 	 text-align:right;
 }
 .view-more-button span {
+    border: 1px solid #fff;
 	border-radius:5px;
 	background-color:#03a9f4;
 	font-size:18px;
 	font-family: 'Economica', sans-serif;
 	color:#fff;
-	padding:10px 20px 10px 20px;
+	padding:6px 20px 6px 20px;
+	font-weight:bold;
+}
+.view-more-button span:hover {
+    border: 1px solid #03a9f4;
+	border-radius:5px;
+	background-color:#fff;
+	font-size:18px;
+	font-family: 'Economica', sans-serif;
+	color:#03a9f4;
+	padding:6px 20px 6px 20px;
 	font-weight:bold;
 }
 /* Footer styles */
@@ -620,6 +627,9 @@ a {
 .text-align-center {
 	text-align:center;
 }
+.circle-container {
+	margin-top:-4px;
+}
 .small-circular {
 	width: 38px;
 	height: 38px;
@@ -669,4 +679,34 @@ label.css-label {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
+}
+.list-tag {
+
+}
+.normal-weight {
+	font-weight:normal;
+}
+.lighter-italics {
+	font-weight:lighter;
+	font-style: italic;	
+}
+
+/* rank images */
+.rank-down-arrow, .rank-up-arrow, .rank-unchanged-arrow {
+    background-image: url('//img03.animeftw.tv/v6/themes/default/rank-sprite.png');
+    background-repeat: no-repeat;
+    height:10px;
+    display:inline-block;
+}
+.rank-down-arrow {
+    width:10px;
+    background-position: 0 0;
+}
+.rank-up-arrow {
+    width:10px;
+    background-position: -20px 0;
+}
+.rank-unchanged-arrow {
+    width:10px;
+    background-position: -10px 0;
 }

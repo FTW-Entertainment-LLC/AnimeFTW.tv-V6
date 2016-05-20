@@ -150,7 +150,7 @@ class Content extends Config {
 						</div>
 						<div class="content-column two-wide">
 							<div style="height:305px;width:225px;float:right;margin-top:-68px;">
-								<img src=" 	https://d206m0dw9i4jjv.cloudfront.net/chibi-fay.png" alt="" />
+								<img src=" 	//img03.animeftw.tv/chibi-fay.png" alt="" />
 							</div>
 						</div>
 					</div>
@@ -245,162 +245,76 @@ class Content extends Config {
 	
 	public function buildRightColumnContent()
 	{
-		return '
-		<div class="right-content-wrapper">
-						<div class="right-content-header">Top 10 Anime</div>
+		$query = "SELECT
+	`site_topseries`.`seriesID`, 
+	`site_topseries`.`lastPosition`, 
+	`site_topseries`.`currentPosition`, 
+	`site_topseries`.`seriesName`,
+    `series`.`moviesOnly`,
+	`series`.`seoname`,
+    `series`.`stillRelease`,
+	(SELECT COUNT(*) FROM `episode` WHERE `sid`=`series`.`id`) as `totalEpisodes`
+	FROM `site_topseries` INNER JOIN `series` ON `series`.`id`=`site_topseries`.`seriesID` ORDER BY `site_topseries`.`currentPosition` ASC LIMIT 0, 10";		
+		$result = $this->mysqli->query($query) or die('Error : ' . $this->mysqli->error);
+		
+		$data = '
+					<div class="table-wrapper">
+						<div class="table-row">
+							<div class="table-column-100 column-left right-content-header">Top 10 Anime</div>
+						</div>
 						<div class="right-content-data">
-							<div class="right-content-overlay" style="padding-top:5px;">
-								<div class="right-content-list">
-									<div class="right-content-list-row">
-										<div class="right-content-list-number">1</div>
-										<div class="right-content-list-image">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
-										</div>
-										<div class="right-content-list-content">
-											<div class="right-content-list-link">
-												<a class="side tooltip-overlay" href="/anime/rage-of-bahamut-genesis/" data-node="/scripts.php?view=profiles&show=tooltips&id=1335">Rage of Bahamut: Genesis</a>
-											</div>
-											<div class="right-content-list-details">
-												X Episodes, finished. <img src="http://img02.animeftw.tv/arrow_none.gif" title="Rank Unchanged, Previous Rank: 1" alt="" />
-											</div>
-										</div>
-									</div>
-								</div>
-								<div class="right-content-list">
-									<div class="right-content-list-row">
-										<div class="right-content-list-number">2</div>
-										<div class="right-content-list-image">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
-										</div>
-										<div class="right-content-list-content">
-											<div class="right-content-list-link">
-												<a class="side tooltip-overlay" href="/anime/death-billiards/" data-node="/scripts.php?view=profiles&show=tooltips&id=1283">Death Billiards</a>
-											</div>
-											<div class="right-content-list-details">
-												X Episodes, finished. <img src="http://img02.animeftw.tv/arrow_none.gif" title="Rank Unchanged, Previous Rank: 2" alt="" />
-											</div>
+							<div class="right-content-overlay">';
+		$i=1;
+		while($row = $result->fetch_assoc()){
+            # is this a movies or episode based series
+            if($row['moviesOnly'] == 1) {
+                $videosType = 'movies';
+            } else {
+                $videosType = 'episodes';
+            }            
+            # is the series still releasing?
+            if($row['stillRelease'] == 'yes' || $row['stillRelease'] == 1) {
+                $seriesStatus = 'airing';
+            } else {
+                $seriesStatus = 'finished';
+            }
+			$data .= '
+								<div class="table-row">
+									<div class="table-column-8 right-content-list-number">' . $i . '</div>
+									<div class="table-column-15 right-content-list-image">
+										<div class="circle-container">
+											<div class="small-circular" style="background:url(\'//img03.animeftw.tv/seriesimages/' . $row['seriesID'] . '.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
 										</div>
 									</div>
-								</div>
-								<div class="right-content-list">
-									<div class="right-content-list-row">
-										<div class="right-content-list-number">3</div>
-										<div class="right-content-list-image">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
+									<div class="table-column-70">
+										<div class="right-content-list-link normal-weight">
+											<a class="list-tag" href="/anime/' . $row['seoname'] . '/" data-node="/scripts.php?view=profiles&show=tooltips&id=' . $row['seriesID'] . '">' . $row['seriesName'] . '</a>
 										</div>
-										<div class="right-content-list-content">
-											<div class="right-content-list-link">
-												<a class=\'side tooltip-overlay\' href=\'/anime/maken-ki-two-takeru-nyotaika-minami-no-shima-de-supoon/\' data-node="/scripts.php?view=profiles&show=tooltips&id=1293" title="Maken-ki! Two: Takeru Nyotaika!? Minami no Shima de Supoon">Maken-ki! Two: Takeru Nyotaika!? Mina..</a>
-											</div>
-											<div class="right-content-list-details">
-												X Episodes, finished. <img src="http://img02.animeftw.tv/arrow_none.gif" title="Rank Unchanged, Previous Rank: 3" alt="" />
-											</div>
-										</div>
-									</div>
-								</div>
-								<div class="right-content-list">
-									<div class="right-content-list-row">
-										<div class="right-content-list-number">4</div>
-										<div class="right-content-list-image">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
-										</div>
-										<div class="right-content-list-content">
-											<div class="right-content-list-link">
-												<a class=\'side tooltip-overlay\' href=\'/anime/psycho-pass-2/\' data-node="/scripts.php?view=profiles&show=tooltips&id=1296">Psycho-Pass 2</a>
-											</div>
-											<div class="right-content-list-details">
-												X Episodes, finished. <img src="http://img02.animeftw.tv/arrow_up.gif"  alt="" title="Rank Went up, Previous Rank: 28" />
-											</div>
+										<div class="right-content-list-details">';
+			if($row['lastPosition'] < $row['currentPosition']) {
+				// the previous rank is lower than the existing rank, so it went up..
+				$data .= $row['totalEpisodes'] . ' ' . $videosType . ', ' . $seriesStatus . '. <div class="rank-down-arrow" title="Rank Went Down, Previous Rank: ' . $row['lastPosition'] . '"></div>';
+			}
+			else if($row['lastPosition'] == $row['currentPosition']) {
+				// Current rank is the same as the previous one, thus unchanged.
+				$data .= $row['totalEpisodes'] . ' ' . $videosType . ', ' . $seriesStatus . '. <div class="rank-unchanged-arrow" title="Rank Unchanged, Previous Rank: ' . $row['lastPosition'] . '"></div>';
+			}
+			else {
+				// by default the rank went up.
+				$data .= $row['totalEpisodes'] . ' ' . $videosType . ', ' . $seriesStatus . '. <div class="rank-up-arrow" title="Rank Went Up, Previous Rank: ' . $row['lastPosition'] . '"></div>';
+			}
+			$data .= '							
 										</div>
 									</div>
-								</div>
-								<div class="right-content-list-row">
-									<div class="right-content-list-number">5</div>
-									<div class="right-content-list-image">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
-									</div>
-									<div class="right-content-list-content">
-										<div class="right-content-list-link">
-											<a class=\'side tooltip-overlay\' href=\'/anime/wolf-girl-black-prince/\' data-node="/scripts.php?view=profiles&show=tooltips&id=1324">Wolf Girl &amp; Black Prince</a>
+								</div>';
+			$i++;
+		}
+		$data .= '			
+								<div class="table-row right-content-list-row">
+									<div class="table-column-100">
+										<div class="view-more-button">
+											<a href="#"><span>Top 100 Anime</span></a>
 										</div>
-										<div class="right-content-list-details">
-											X Episodes, finished. <img src="http://img02.animeftw.tv/arrow_up.gif"  alt="" title="Rank Went up, Previous Rank: 31" />
-										</div>
-									</div>
-								</div>
-								<div class="right-content-list-row">
-									<div class="right-content-list-number">6</div>
-									<div class="right-content-list-image">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
-									</div>
-									<div class="right-content-list-content">
-										<div class="right-content-list-link">
-											<a class=\'side tooltip-overlay\' href=\'/anime/black-bullet/\' data-node="/scripts.php?view=profiles&show=tooltips&id=1130">Black Bullet</a>
-										</div>
-										<div class="right-content-list-details">
-											X Episodes, finished. <img src="http://img02.animeftw.tv/arrow_up.gif"  alt="" title="Rank Went up, Previous Rank: 11" />
-										</div>
-									</div>
-								</div>
-								<div class="right-content-list-row">
-									<div class="right-content-list-number">7</div>
-									<div class="right-content-list-image">
-										<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
-									</div>
-									<div class="right-content-list-content">
-										<div class="right-content-list-link">
-											<a class=\'side tooltip-overlay\' href=\'/anime/log-horizon/\' data-node="/scripts.php?view=profiles&show=tooltips&id=1146">Log Horizon</a>
-										</div>
-										<div class="right-content-list-details">
-											X Episodes, finished. <img src="http://img02.animeftw.tv/arrow_up.gif"  alt="" title="Rank Went up, Previous Rank: 34" />
-										</div>
-									</div>
-								</div>
-								<div class="right-content-list-row">
-									<div class="right-content-list-number">8</div>
-									<div class="right-content-list-image">
-										<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
-									</div>
-									<div class="right-content-list-content">
-										<div class="right-content-list-link">
-											<a class=\'side tooltip-overlay\' href=\'/anime/lord-marksman-and-vanadis/\' data-node="/scripts.php?view=profiles&show=tooltips&id=1270">Lord Marksman and Vanadis</a>
-										</div>
-										<div class="right-content-list-details">
-											X Episodes, finished. <img src="http://img02.animeftw.tv/arrow_up.gif"  alt="" title="Rank Went up, Previous Rank: 12" />
-										</div>
-									</div>
-								</div>
-								<div class="right-content-list-row">
-									<div class="right-content-list-number">9</div>
-									<div class="right-content-list-image">
-										<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
-									</div>
-									<div class="right-content-list-content">
-										<div class="right-content-list-link">
-											<a class=\'side tooltip-overlay\' href=\'/anime/deadman-wonderland/\' data-node="/scripts.php?view=profiles&show=tooltips&id=457">Deadman Wonderland</a>
-										</div>
-										<div class="right-content-list-details">
-											X Episodes, finished. <img src="http://img02.animeftw.tv/arrow_up.gif"  alt="" title="Rank Went up, Previous Rank: 19" />
-										</div>
-									</div>
-								</div>
-								<div class="right-content-list-row">
-									<div class="right-content-list-number">10</div>
-									<div class="right-content-list-image">
-										<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
-									</div>
-									<div class="right-content-list-content">
-										<div class="right-content-list-link">
-											<a class=\'side tooltip-overlay\' href=\'/anime/no-game-no-life/\' data-node="/scripts.php?view=profiles&show=tooltips&id=1139">No Game No Life</a>
-										</div>
-										<div class="right-content-list-details">
-											X Episodes, finished. <img src="http://img02.animeftw.tv/arrow_up.gif"  alt="" title="Rank Went up, Previous Rank: 130" />
-										</div>
-									</div>
-								</div>
-								<div class="right-content-list-row">
-									<div class="view-more-button">
-										<a href="#"><span>Top 100 Anime</span></a>
 									</div>
 								</div>
 							</div>
@@ -454,88 +368,56 @@ class Content extends Config {
 								</div>
 							</div>
 						</div>
-					</div>
+					</div>';
+		$data .= '
 					<div class="right-content-wrapper">
 						<div class="right-content-header">Check Us On...</div>
 						<div class="right-content-data">
 							<div class="right-content-overlay">
 								<div class="text-align-center">
-									<a href="http://www.animeftw.tv/download/AnimeFTW.tv.apk"><img src="https://d206m0dw9i4jjv.cloudfront.net/android-logo-transparent.png" alt="On Android!" style="width:225px;" /></a>
+									<a href="http://www.animeftw.tv/download/AnimeFTW.tv.apk"><img src="//img03.animeftw.tv/android-logo-transparent.png" alt="On Android!" style="width:225px;" /></a><br /><br />
+									<a href="#"><img src="//img03.animeftw.tv/themes/default/kodi-image.png" /></a><br /><br />
+									<a href="#"><img src="//img03.animeftw.tv/themes/default/windows-phone-logo.png" /></a>
 								</div>
 							</div>
 						</div>
-					</div>
-					<div class="right-content-wrapper">
-						<div class="right-content-header">Latest Series</div>
+					</div>';
+		$query = "SELECT `id`, `fullSeriesName`, `seoname`, `stillRelease`, (SELECT COUNT(id) FROM `episode` WHERE `episode`.`sid`=`series`.`id`) as `numrows` FROM `series` WHERE `active` = 'yes' AND `license` = 0 ORDER BY `id` DESC LIMIT 0, 5";
+		$result = $this->mysqli->query($query) or die('Error : ' . $this->mysqli->error);		
+		$data .= '
+					<div class="table-wrapper">
+						<div class="table-row">
+							<div class="table-column-100 column-left right-content-header">Recently Added Series</div>
+						</div>
 						<div class="right-content-data">
-							<div class="right-content-overlay">
-								<div class="content-table opensans">
-									<div class="content-row pad-five height-44">
-										<div class="content-column two-wide latest-series-image">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
-										</div>
-										<div class="content-column eight-wide margin-top-six">
-											<div class="twelvefont bolded">
-												<a href="/anime/chou-denji-machine-voltes-v/">Chou Denji Machine Voltes V</a>
-											</div>
-											<div class="content-column italic twelvefont eight-wide">
-												12 episodes, finished.
-											</div>
-										</div>
-									</div>
-									<div class="content-row pad-five height-44">
-										<div class="content-column two-wide latest-series-image">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
-										</div>
-										<div class="content-column eight-wide margin-top-six">
-											<div class="twelvefont bolded">
-												<a href="/anime/golgo-13/">Golgo 13</a>
-											</div>
-											<div class="content-column italic twelvefont eight-wide">
-												12 episodes, finished.
-											</div>
+							<div class="right-content-overlay">';
+		$i=1;
+		while($row = $result->fetch_assoc()){
+			$airing = 'finished';
+			if($row['stillRelease'] == 'yes'){
+				$airing = 'airing';
+			}
+			$data .= '
+								<div class="table-row pad-five">
+									<div class="table-column-15 right-content-list-image">
+										<div class="circle-container">
+											<div class="small-circular" style="background:url(\'//img03.animeftw.tv/seriesimages/' . $row['id'] . '.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
 										</div>
 									</div>
-									<div class="content-row pad-five height-44">
-										<div class="content-column two-wide latest-series-image">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
+									<div class="table-column-80">										
+										<div class="twelvefont normal-weight">
+											<a class="list-tag" href="/anime/' . $row['seoname'] . '/" data-node="/scripts.php?view=profiles&show=tooltips&id=' . $row['id'] . '">' . $row['fullSeriesName'] . '</a>
 										</div>
-										<div class="content-column eight-wide margin-top-six">
-											<div class="twelvefont bolded">
-												<a href="/anime/marchen-awakens-romance/">Marchen Awakens Romance</a>
-											</div>
-											<div class="content-column italic twelvefont eight-wide">
-												12 episodes, finished.
-											</div>
+										<div class="italic twelvefont eight-wide">
+											' . $row['numrows'] . ' videos, ' . $airing . '.
 										</div>
 									</div>
-									<div class="content-row pad-five height-44">
-										<div class="content-column two-wide latest-series-image">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
-										</div>
-										<div class="content-column eight-wide" margin-top-six>
-											<div class="twelvefont bolded">
-												<a href="/anime/rage-of-bahamut-genesis/">Rage of Bahamut: Genesis</a>
-											</div>
-											<div class="content-column italic twelvefont eight-wide">
-												12 episodes, finished.
-											</div>
-										</div>
-									</div>
-									<div class="content-row pad-five height-44">
-										<div class="content-column two-wide latest-series-image">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
-										</div>
-										<div class="content-column eight-wide margin-top-six">
-											<div class="twelvefont bolded">
-												<a href="/anime/tales-of-zestiria-dawn-of-a-shepherd/">Tales of Zestiria: Dawn of the Monk</a>
-											</div>
-											<div class="content-column italic twelvefont eight-wide">
-												12 episodes, finished.
-											</div>
-										</div>
-									</div>
-									<div class="content-row pad-five height-44">
+								</div>';
+		}
+		
+		$data .= '			
+								<div class="table-row pad-five height-44">
+									<div class="table-column-100">
 										<div class="view-more-button">
 											<a href="#"><span>View All Anime</span></a>
 										</div>
@@ -543,7 +425,8 @@ class Content extends Config {
 								</div>
 							</div>
 						</div>
-					</div>
+					</div>';
+		$data .= '
 					<div class="right-content-wrapper">
 						<div class="right-content-header">Latest Airing Episodes</div>
 						<div class="right-content-data">
@@ -551,7 +434,7 @@ class Content extends Config {
 								<div class="content-table opensans">
 									<div class="content-row pad-ten height-44">
 										<div class="content-column two-wide margin-top-three">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
+											<div class="small-circular" style="background:url(\'//img03.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
 										</div>
 										<div class="content-column eight-wide">
 											<div class="twelvefont bolded">
@@ -567,7 +450,7 @@ class Content extends Config {
 									</div>
 									<div class="content-row pad-ten height-44">
 										<div class="content-column two-wide margin-top-three">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
+											<div class="small-circular" style="background:url(\'//img03.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
 										</div>
 										<div class="content-column eight-wide">
 											<div class="twelvefont bolded">
@@ -583,7 +466,7 @@ class Content extends Config {
 									</div>
 									<div class="content-row pad-ten height-44">
 										<div class="content-column two-wide margin-top-three">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
+											<div class="small-circular" style="background:url(\'//img03.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
 										</div>
 										<div class="content-column eight-wide">
 											<div class="twelvefont bolded">
@@ -599,7 +482,7 @@ class Content extends Config {
 									</div>
 									<div class="content-row pad-ten height-44">
 										<div class="content-column two-wide margin-top-three">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
+											<div class="small-circular" style="background:url(\'//img03.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
 										</div>
 										<div class="content-column eight-wide">
 											<div class="twelvefont bolded">
@@ -615,7 +498,7 @@ class Content extends Config {
 									</div>
 									<div class="content-row pad-ten height-44">
 										<div class="content-column two-wide margin-top-three">
-											<div class="small-circular" style="background:url(\'http://img02.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
+											<div class="small-circular" style="background:url(\'//img03.animeftw.tv/seriesimages/1335.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
 										</div>
 										<div class="content-column eight-wide">
 											<div class="twelvefont bolded">
@@ -633,5 +516,30 @@ class Content extends Config {
 							</div>
 						</div>
 					</div>';
+					return $data;
+	}
+	
+	public function buildLeftColumnContent(){
+		$data = '
+		<div class="left-column-wrapper">
+			<div class="news-article">
+				<div class="news-article-header">
+					<div class="news-article-title">
+						This is an example title: testing.
+					</div>
+					<div class="news-article-title-information">
+						Posted on 12.12.12 by user1
+					</div>
+				</div>
+				<div class="news-article-body twelvefont opensans">
+					 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam congue dictum auctor. Etiam erat dui, eleifend eleifend placerat aliquet, pretium non ipsum. Aliquam non tempus felis. Aliquam cursus mauris id purus posuere pulvinar. Morbi lobortis luctus viverra. Sed egestas cursus ullamcorper. Vestibulum finibus congue tortor a vestibulum. Aliquam tincidunt augue et lorem elementum tempus. Donec sed mauris placerat, tincidunt nunc vel, lobortis lectus. Maecenas lorem arcu, vestibulum ut porta eget, condimentum id nisl. Proin gravida dapibus euismod. Proin at tristique lorem, quis pharetra neque. Duis a magna sed felis interdum faucibus. Donec dignissim sapien varius, ullamcorper sem in, ultricies lectus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Suspendisse convallis gravida velit quis fermentum.<br />
+<br />
+Morbi augue magna, gravida vel magna sit amet, ultrices luctus quam. Mauris maximus nulla velit, quis rhoncus tellus efficitur at. Aenean vitae purus tincidunt, hendrerit mauris ac, faucibus lectus. Pellentesque et ligula id elit porta fermentum. Aliquam fermentum felis magna, sed suscipit neque varius ac. In sit amet tellus et purus feugiat maximus. Etiam in lobortis magna. Quisque pellentesque ante a elit pulvinar, tempus vestibulum dui fringilla. Integer id justo vitae quam blandit molestie. Cras sit amet iaculis nisl. Morbi quis erat tincidunt, elementum velit eu, mattis ex. Ut aliquam aliquet arcu convallis dignissim. Cras volutpat, sapien et maximus rhoncus, magna urna venenatis massa, nec euismod ipsum nisi nec felis. Nullam pellentesque, massa eu faucibus ultricies, velit quam accumsan nibh, ut tristique quam magna non eros. Nulla vehicula scelerisque tristique. Sed nulla turpis, imperdiet et nisi ut, porttitor interdum felis.<br />
+<br />
+Praesent ullamcorper rutrum magna vitae ornare. Suspendisse rutrum hendrerit luctus. Nullam ac eros ac ipsum maximus placerat eu vitae enim. Morbi dapibus maximus nulla, eu dignissim felis viverra et. Nunc ac dignissim elit, non posuere velit. Sed lobortis velit in elit interdum, porta rhoncus orci tristique. Sed ut leo vitae magna viverra malesuada. In vitae vulputate metus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Fusce non risus non massa tristique sollicitudin. Ut tempus dolor quis neque finibus vestibulum. Nunc pharetra dui a dui luctus accumsan. Morbi commodo elit velit, vitae molestie justo varius dignissim. Curabitur vehicula ac ipsum at dictum. Phasellus rhoncus iaculis justo, sit amet egestas neque maximus eu. <br />
+				</div>
+			</div>
+		</div>';
+		return $data;
 	}
 }

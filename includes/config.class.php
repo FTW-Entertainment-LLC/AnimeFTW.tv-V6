@@ -1,7 +1,7 @@
 <?php
 /****************************************************************\
-## FileName: config.class.php                                     
-## Author: Brad Riemann                                         
+## FileName: config.class.php
+## Author: Brad Riemann
 ## Usage: Version 6.0 of the configuration class.
 ## Copyright 2015 FTW Entertainment LLC, All Rights Reserved
 \****************************************************************/
@@ -10,6 +10,7 @@ class Config
 {
     
     public $UserArray = array(), $PermArray, $ImageHost, $StatsDB, $MainDB, $PageColumns, $rootdir, $currentversion;
+    private $DB;
 
     public function __construct()
     {
@@ -17,17 +18,18 @@ class Config
         $this->currentversion = '6.0.0';
         $this->PageColumns = array("id", "name", "page_title", "seoname", "type", "template", "security");
         
-        // Initialize the Database connection!
-        $this->DB_Con();
+        // initialize the database connection, we won't actually use it till we call it up.
+        include_once('db.class.php');
+        $this->DB = new DB($this->dbConnectionInfo());
         
         // constructs all of the details about the user.
         $this->array_constructUser(); 
         
         // this is for the usage of the CDN, all images will be there and if its secure we want to use it.
         if($port == 443) {
-            $this->ImageHost = 'https://d206m0dw9i4jjv.cloudfront.net';
+            $this->ImageHost = 'https://img03.animeftw.tv';
         } else {
-            $this->ImageHost = 'http://img02.animeftw.tv';
+            $this->ImageHost = 'http://img03.animeftw.tv';
             //$this->ImageHost = 'http://d206m0dw9i4jjv.cloudfront.net';
         }
         // temp measure to keep people out..
@@ -41,12 +43,13 @@ class Config
     }
     
     #----------------------------------------------------------------
-    # function DB_Con
-    # Builds the database connection for use ONLY in the class
-    # @private
+    # function dbConnectionInfo
+    # Returns the vital information for database access.
+    # @public
     #----------------------------------------------------------------
-    private function DB_Con()
+    public function dbConnectionInfo()
     {
+        $redisNodes = Array('10.150.14.10:7000', '10.150.14.10:7001', '10.150.14.10:7002', '10.150.14.10:7003', '10.150.14.10:7004', '10.150.14.10:7005');
         
         if($_SERVER['HTTP_HOST'] == 'v6.aftw.ftwdevs.com') {
             $this->StatsDB     = 'mainaftw_stats'; // declare the stats DB
@@ -65,11 +68,7 @@ class Config
             $dbname         = 'mainaftw_anime';
         }
         
-        $mysqli = new mysqli($dbhost, $dbuser, $dbpass, $dbname);
-        $this->mysqli = $mysqli;
-        if ($this->mysqli->connect_errno) {
-            echo "Failed to connect to MySQL: (" . $this->mysqli->connect_errno . ") " . $this->mysqli->connect_error;
-        }
+        return array('host' => $dbhost, 'db' => $dbname, 'user' => $dbuser, 'pass' => $dbpass, 'redisNodes' => $redisNodes);
     }
     
     #----------------------------------------------------------------
@@ -81,23 +80,26 @@ class Config
     private function array_constructUser()
     {
         // We need to check to see if the user logged in is through the website or the api
-        if(isset($_GET['token']) || isset($_POST['token']))
-        {
+        if (isset($_GET['token']) || isset($_POST['token'])) {
+            $this->DB->query("SELECT `uid` FROM `" . $this->MainDB . "`.`developers_api_sessions` WHERE `session_hash` = '" . $this->DB->escape($Token) . "' LIMIT 0, 1");
             // if the token is set, it will be an api request
             $Token = (isset($_POST['token']) ? $_POST['token'] : $_GET['token']);
-            $query = "SELECT `uid` FROM `" . $this->MainDB . "`.`developers_api_sessions` WHERE `session_hash` = '" . $this->mysqli->real_escape_string($Token) . "' LIMIT 0, 1";
+            /*$query = "SELECT `uid` FROM `" . $this->MainDB . "`.`developers_api_sessions` WHERE `session_hash` = '" . $this->mysqli->real_escape_string($Token) . "' LIMIT 0, 1";
             $result = $this->mysqli->query($query) or die('Error : ' . $this->mysqli->error);
-            $row = $result->fetch_assoc();
+            $row = $result->fetch_assoc();*/
+            $row = $this->DB->results();
             $UserID = $row['uid'];
             
+            $this->DB->query("SELECT * FROM users WHERE ID='" . $this->DB->escape($UserID) . "'");
+            /*
             $query = "SELECT * FROM users WHERE ID='" . $this->mysqli->real_escape_string($UserID) . "'";
             $result = $this->mysqli->query($query) or die('Error : ' . $this->mysqli->error);
-            $row = $result->fetch_assoc();
-        }
-        else
-        {            
+            $row = $result->fetch_assoc();*/
+            $row = $this->DB->results();
+        } else {            
             // we need to check if the token and authentication are setup correctly. (site token)
-            if(!isset($_COOKIE['0ii']) || !isset($_COOKIE['0au']) || !isset($_COOKIE['0st'])) {
+                        
+            if (!isset($_COOKIE['0ii']) || !isset($_COOKIE['0au']) || !isset($_COOKIE['0st'])) {
                 $count = 0;
             } else {
                 // build out the cookies.
@@ -106,26 +108,15 @@ class Config
                 $userCookieId = $_COOKIE['0ii'];
                 
                 // initial count query
-                $query = "SELECT COUNT(id) as `count` FROM `" . $this->MainDB . "`.`user_session` WHERE `id` = '" . $this->mysqli->real_escape_string($sessionId) . "' AND `uid` = '" . $this->mysqli->real_escape_string($userCookieId) . "'";
-                $result = $this->mysqli->query($query);
-                $count = $result->fetch_assoc();            
+                $this->DB->query("SELECT COUNT(id) as `count` FROM `" . $this->MainDB . "`.`user_session` WHERE `id` = '" . $this->DB->escape($sessionId) . "' AND `uid` = '" . $this->DB->escape($userCookieId) . "'");
+                $count = $this->DB->results()[0]['count'];
             }
             // There is an active token for this user, lets proceed.
-            if($count > 0)
-            {
-                // unset the previous variables.
-                unset($query);
-                unset($result);
+            if ($count > 0) {
                 // First thing we will do is validate the authorization token, there must be one prior to moving forward.
-                $query = "SELECT * FROM `" . $this->MainDB . "`.`user_authorization` WHERE `id` = '" . $this->mysqli->real_escape_string($authorizationId) . "' AND `uid` = '" . $this->mysqli->real_escape_string($userCookieId) . "'";
-                $result = $this->mysqli->query($query);
-                
-                if(!$result) {
-                    echo "There was an error selecting the authorization token.";
-                    exit;
-                }
-                $row = $result->fetch_assoc();
-                
+                $this->DB->query("SELECT * FROM `" . $this->MainDB . "`.`user_authorization` WHERE `id` = '" . $this->DB->escape($authorizationId) . "' AND `uid` = '" . $this->DB->escape($userCookieId) . "'");
+                $row = $this->DB->results();
+                                
                 // we need to perform a few items to make sure this is a clean session.
                 // Ensure the auth settings match, if they do not, compare what the changes are.
                 // If the changes are no substantial, then we will let them proceed while updating their profile.
@@ -158,26 +149,19 @@ class Config
                     // They have access, first, update the authorization token so we don't keep having to see the same changes.
                     if($changed == 1) {
                         // The ip changed.
-                        $query = "UPDATE `" . $this->MainDB . "`.`user_authorization` SET `ip` = '" . $this->mysqli->real_escape_string($_SERVER['REMOTE_ADDR']) . "' WHERE `id` = '" . $this->mysqli->real_escape_string($authorizationId) . "' AND `uid` = '" . $this->mysqli->real_escape_string($userCookieId) . "'";
-                        $result = $this->mysqli->query($query);
+                        $this->DB->query("UPDATE `" . $this->MainDB . "`.`user_authorization` SET `ip` = '" . $this->DB->escape($_SERVER['REMOTE_ADDR']) . "' WHERE `id` = '" . $this->DB->escape($authorizationId) . "' AND `uid` = '" . $this->DB->escape($userCookieId) . "'");
                     } else if($changed == 2) {
                         // The version of the browser changed.
-                        $query = "UPDATE `" . $this->MainDB . "`.`user_authorization` SET `version` = '" . $this->mysqli->real_escape_string($userDetails['version']) . "' WHERE `id` = '" . $this->mysqli->real_escape_string($authorizationId) . "' AND `uid` = '" . $this->mysqli->real_escape_string($userCookieId) . "'";
-                        $result = $this->mysqli->query($query);
+                        $this->DB->query("UPDATE `" . $this->MainDB . "`.`user_authorization` SET `version` = '" . $this->DB->escape($userDetails['version']) . "' WHERE `id` = '" . $this->DB->escape($authorizationId) . "' AND `uid` = '" . $this->DB->escape($userCookieId) . "'");
                     } else {
                         // no other changes are to be made.
                     }
   
                     // update the token and user profile, so that the user knows the last time this session was used.              
-                    $query = "UPDATE `" . $this->MainDB . "`.`user_session` INNER JOIN `" . $this->MainDB . "`.`users` ON (`users`.`ID`=`user_session`.`uid`) SET `user_session`.`updated` = '" . time() . "', `users`.`lastActivity`='" . time() . "' WHERE `user_session`.`id` = '" . $this->mysqli->real_escape_string($sessionId) . "' AND `user_session`.`uid` = '" . $this->mysqli->real_escape_string($userCookieId) . "'";
-                    $result = $this->mysqli->query($query);
-                    unset($query);
-                    unset($result);
+                    $this->DB->query("UPDATE `" . $this->MainDB . "`.`user_session` INNER JOIN `" . $this->MainDB . "`.`users` ON (`users`.`ID`=`user_session`.`uid`) SET `user_session`.`updated` = '" . time() . "', `users`.`lastActivity`='" . time() . "' WHERE `user_session`.`id` = '" . $this->DB->escape($sessionId) . "' AND `user_session`.`uid` = '" . $this->DB->escape($userCookieId) . "'");
                     
                     // start building the user details
-                    $query = "SELECT * FROM users WHERE ID='" . $this->mysqli->real_escape_string($userCookieId) . "'";
-                    $result = $this->mysqli->query($query);
-                    $row = $result->fetch_assoc();
+                    $this->DB->query("SELECT * FROM users WHERE ID='" . $this->DB->escape($userCookieId) . "'");
                     $UserID = $row['ID'];
                 } else {
                     // The session is not valid, they will see no session data.
@@ -458,5 +442,110 @@ class Config
                 return md5(uniqid(mt_rand()));
                 break;
         }
+    }
+    
+    public function generateRandomString($length = 10)
+    {
+        $randomString = substr(str_shuffle(MD5(microtime())), 0, $length);
+        return $randomString;
+    }
+    
+    public function detectUserAgent() { 
+        $userAgent = strtolower($_SERVER['HTTP_USER_AGENT']);
+        
+        // What version? 
+        if (preg_match('/.+(?:rv|it|ra|ie)[\/: ]([\d.]+)/', $userAgent, $matches)) { 
+            $version = $matches[1]; 
+        } else { 
+            $version = 'unknown'; 
+        } 
+
+        $browser = $this->getBrowser($userAgent);
+        $platform = $this->getOS($userAgent);
+        
+        return array ( 
+            'browser'   => $browser, 
+            'version'   => $version, 
+            'platform'  => $platform, 
+            'userAgent' => $userAgent 
+        );
+    }
+    
+    public function getOS($agent)
+    {
+        $os_platform    =   "Unknown OS Platform";
+        $os_array       =   array(
+            '/windows nt 10/i'      =>  'Windows 10',
+            '/windows nt 6.3/i'     =>  'Windows 8.1',
+            '/windows nt 6.2/i'     =>  'Windows 8',
+            '/windows nt 6.1/i'     =>  'Windows 7',
+            '/windows nt 6.0/i'     =>  'Windows Vista',
+            '/windows nt 5.2/i'     =>  'Windows Server 2003/XP x64',
+            '/windows nt 5.1/i'     =>  'Windows XP',
+            '/windows xp/i'         =>  'Windows XP',
+            '/windows nt 5.0/i'     =>  'Windows 2000',
+            '/windows me/i'         =>  'Windows ME',
+            '/win98/i'              =>  'Windows 98',
+            '/win95/i'              =>  'Windows 95',
+            '/win16/i'              =>  'Windows 3.11',
+            '/windows phone 8.1/i'  =>  'Windows Phone 8.1',
+            '/windows phone 8/i'    =>  'Windows Phone 8',
+            '/windows phone 7.5/i'  =>  'Windows Phone 7.5',
+            '/windows phone 7/i'    =>  'Windows Phone 7',
+            '/macintosh|mac os x/i' =>  'Mac OS X',
+            '/mac_powerpc/i'        =>  'Mac OS 9',
+            '/linux/i'              =>  'Linux',
+            '/ubuntu/i'             =>  'Ubuntu',
+            '/iphone/i'             =>  'iPhone',
+            '/ipod/i'               =>  'iPod',
+            '/ipad/i'               =>  'iPad',
+            '/android/i'            =>  'Android',
+            '/blackberry/i'         =>  'BlackBerry',
+            '/webos/i'              =>  'Mobile',
+            '/cros/i'               =>  'ChromeOS',
+            '/playstation vita/i'   =>  'PlayStation Vita',
+        );
+
+        foreach($os_array as $regex => $value)
+        {
+            if(preg_match($regex, $agent))
+            {
+                $os_platform    =   $value;
+                break;
+            }
+        }
+
+        return $os_platform;
+    }
+
+    public function getBrowser($agent)
+    {
+        $browser        =   "Unknown Browser";
+        $browser_array  =   array(
+            '/iemobile/i'   =>  'Internet Explorer Mobile',
+            '/msie/i'       =>  'Internet Explorer',
+            '/trident/i'    =>  'Internet Explorer',
+            '/firefox/i'    =>  'Firefox',
+            '/safari/i'     =>  'Safari',
+            '/chrome/i'     =>  'Chrome',
+            '/opera/i'      =>  'Opera',
+            '/netscape/i'   =>  'Netscape',
+            '/maxthon/i'    =>  'Maxthon',
+            '/konqueror/i'  =>  'Konqueror',
+            '/mobile/i'     =>  'Handheld Browser',
+            '/palemoon/i'   =>  'Palemoon',
+            '/silk/i'       =>  'Silk',
+        );
+
+        foreach($browser_array as $regex => $value)
+        {
+            if(preg_match($regex,  $agent))
+            {
+                $browser    =   $value;
+                break;
+            }
+        }
+
+        return $browser;
     }
 }

@@ -9,9 +9,15 @@
 
 class Content extends Config {
 	
+    private $DB;
+    
 	public function __construct()
 	{
 		parent::__construct();
+        
+        // initialize the database connection, we won't actually use it till we call it up.
+        include_once('db.class.php');
+        $this->DB = new DB($this->dbConnectionInfo());   
 	}
 	
 	public function buildHeaderDetails()
@@ -79,10 +85,8 @@ class Content extends Config {
 							<a href="/" class="nav-button-link"><div class="button">Home</div></a>
 							<div class="dropdown-wrapper" id="home-dropdown">
 								<div class="dark-top-arrow"></div>';
-					$query = "SELECT `page_title`, `seoname` FROM `page` WHERE `parent` = 1 AND `type` = 0 ORDER BY `page_title` ASC";
-					$result = $this->mysqli->query($query) or die('Error : ' . $this->mysqli->error);
-					while($row = $result->fetch_assoc())
-					{
+					$this->DB->query("SELECT `page_title`, `seoname` FROM `page` WHERE `parent` = 1 AND `type` = 0 ORDER BY `page_title` ASC");
+					foreach ($this->DB->results() as $key => &$row) {
 						$returndata .= '
 						<div class="dropdown-row-top">
 							<div class="nav-button-text opensans eighteenfont">
@@ -211,15 +215,14 @@ class Content extends Config {
 	
 	private function footerColumnThree()
 	{
-		$query = "SELECT `page_title`, `seoname` FROM `page` WHERE `footer` > 0 ORDER BY `footer` ASC";
-		$result = $this->mysqli->query($query) or die('Error : ' . $this->mysqli->error);
+		$this->DB->query("SELECT `page_title`, `seoname` FROM `page` WHERE `footer` > 0 ORDER BY `footer` ASC");
+        
 		$returndata = '
 		<div class="footer-header economica">
 			Sitemap
 		</div>
 		<div class="footer-body">';
-		while($row = $result->fetch_assoc())
-		{
+		foreach ($this->DB->results() as $key => &$row) {
 			$returndata .= '
 			<div class="footer-entry">
 				<a href="/' . $row['seoname'] . '">' . stripslashes($row['page_title']) . '</a>
@@ -245,18 +248,7 @@ class Content extends Config {
 	
 	public function buildRightColumnContent()
 	{
-		$query = "SELECT
-	`site_topseries`.`seriesID`, 
-	`site_topseries`.`lastPosition`, 
-	`site_topseries`.`currentPosition`, 
-	`site_topseries`.`seriesName`,
-    `series`.`moviesOnly`,
-	`series`.`seoname`,
-    `series`.`stillRelease`,
-	(SELECT COUNT(*) FROM `episode` WHERE `sid`=`series`.`id`) as `totalEpisodes`
-	FROM `site_topseries` INNER JOIN `series` ON `series`.`id`=`site_topseries`.`seriesID` ORDER BY `site_topseries`.`currentPosition` ASC LIMIT 0, 10";		
-		$result = $this->mysqli->query($query) or die('Error : ' . $this->mysqli->error);
-		
+        # Begin the top 10 series listing.
 		$data = '
 					<div class="table-wrapper">
 						<div class="table-row">
@@ -264,26 +256,31 @@ class Content extends Config {
 						</div>
 						<div class="right-content-data">
 							<div class="right-content-overlay">';
-		$i=1;
-		while($row = $result->fetch_assoc()){
-            # is this a movies or episode based series
-            if($row['moviesOnly'] == 1) {
-                $videosType = 'movies';
-            } else {
-                $videosType = 'episodes';
-            }            
-            # is the series still releasing?
-            if($row['stillRelease'] == 'yes' || $row['stillRelease'] == 1) {
-                $seriesStatus = 'airing';
-            } else {
-                $seriesStatus = 'finished';
-            }
-			$data .= '
+        if($this->UserArray['logged-in'] == 0) {
+            
+            # Only allow logged in member
+            $this->DB->query("SELECT `site_topseries`.`seriesID`, `site_topseries`.`lastPosition`, `site_topseries`.`currentPosition`, `site_topseries`.`seriesName`, `series`.`moviesOnly`, `series`.`seoname`, `series`.`stillRelease`, (SELECT COUNT(*) FROM `episode` WHERE `sid`=`series`.`id`) as `totalEpisodes` FROM `site_topseries` INNER JOIN `series` ON `series`.`id`=`site_topseries`.`seriesID` ORDER BY `site_topseries`.`currentPosition` ASC LIMIT 0, 10");
+
+            $i=1;
+            foreach ($this->DB->results() as $key => &$row) {
+                # is this a movies or episode based series
+                if($row['moviesOnly'] == 1) {
+                    $videosType = 'movies';
+                } else {
+                    $videosType = 'episodes';
+                }            
+                # is the series still releasing?
+                if($row['stillRelease'] == 'yes' || $row['stillRelease'] == 1) {
+                    $seriesStatus = 'airing';
+                } else {
+                    $seriesStatus = 'finished';
+                }
+                $data .= '
 								<div class="table-row">
 									<div class="table-column-8 right-content-list-number">' . $i . '</div>
 									<div class="table-column-15 right-content-list-image">
 										<div class="circle-container">
-											<div class="small-circular" style="background:url(\'//img03.animeftw.tv/seriesimages/' . $row['seriesID'] . '.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
+											<div class="small-circular" style="background:url(\'//img03.animeftw.tv/seriesimages/50x70/' . $row['seriesID'] . '.jpg\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
 										</div>
 									</div>
 									<div class="table-column-70">
@@ -291,24 +288,24 @@ class Content extends Config {
 											<a class="list-tag" href="/anime/' . $row['seoname'] . '/" data-node="/scripts.php?view=profiles&show=tooltips&id=' . $row['seriesID'] . '">' . $row['seriesName'] . '</a>
 										</div>
 										<div class="right-content-list-details">';
-			if($row['lastPosition'] < $row['currentPosition']) {
-				// the previous rank is lower than the existing rank, so it went up..
-				$data .= $row['totalEpisodes'] . ' ' . $videosType . ', ' . $seriesStatus . '. <div class="rank-down-arrow" title="Rank Went Down, Previous Rank: ' . $row['lastPosition'] . '"></div>';
-			}
-			else if($row['lastPosition'] == $row['currentPosition']) {
-				// Current rank is the same as the previous one, thus unchanged.
-				$data .= $row['totalEpisodes'] . ' ' . $videosType . ', ' . $seriesStatus . '. <div class="rank-unchanged-arrow" title="Rank Unchanged, Previous Rank: ' . $row['lastPosition'] . '"></div>';
-			}
-			else {
-				// by default the rank went up.
-				$data .= $row['totalEpisodes'] . ' ' . $videosType . ', ' . $seriesStatus . '. <div class="rank-up-arrow" title="Rank Went Up, Previous Rank: ' . $row['lastPosition'] . '"></div>';
-			}
-			$data .= '							
+                if($row['lastPosition'] < $row['currentPosition']) {
+                    // the previous rank is lower than the existing rank, so it went up..
+                    $data .= $row['totalEpisodes'] . ' ' . $videosType . ', ' . $seriesStatus . '. <div class="rank-down-arrow" title="Rank Went Down, Previous Rank: ' . $row['lastPosition'] . '"></div>';
+                }
+                else if($row['lastPosition'] == $row['currentPosition']) {
+                    // Current rank is the same as the previous one, thus unchanged.
+                    $data .= $row['totalEpisodes'] . ' ' . $videosType . ', ' . $seriesStatus . '. <div class="rank-unchanged-arrow" title="Rank Unchanged, Previous Rank: ' . $row['lastPosition'] . '"></div>';
+                }
+                else {
+                    // by default the rank went up.
+                    $data .= $row['totalEpisodes'] . ' ' . $videosType . ', ' . $seriesStatus . '. <div class="rank-up-arrow" title="Rank Went Up, Previous Rank: ' . $row['lastPosition'] . '"></div>';
+                }
+                $data .= '							
 										</div>
 									</div>
 								</div>';
-			$i++;
-		}
+                $i++;
+            }
 		$data .= '			
 								<div class="table-row right-content-list-row">
 									<div class="table-column-100">
@@ -316,7 +313,14 @@ class Content extends Config {
 											<a href="#"><span>Top 100 Anime</span></a>
 										</div>
 									</div>
-								</div>
+								</div>';
+        } else {
+            $data .= '
+                                <div>
+                                    <div align="center" style="padding:5px;">You must be <a href="/login">logged</a> in  to see the Top Series Listing.</div>
+                                </div>';
+        }
+        $data .= '
 							</div>
 						</div>
 					</div>
@@ -381,18 +385,17 @@ class Content extends Config {
 								</div>
 							</div>
 						</div>
-					</div>';
-		$query = "SELECT `id`, `fullSeriesName`, `seoname`, `stillRelease`, (SELECT COUNT(id) FROM `episode` WHERE `episode`.`sid`=`series`.`id`) as `numrows` FROM `series` WHERE `active` = 'yes' AND `license` = 0 ORDER BY `id` DESC LIMIT 0, 5";
-		$result = $this->mysqli->query($query) or die('Error : ' . $this->mysqli->error);		
-		$data .= '
-					<div class="table-wrapper">
+					</div>
+                    <div class="table-wrapper">
 						<div class="table-row">
 							<div class="table-column-100 column-left right-content-header">Recently Added Series</div>
 						</div>
 						<div class="right-content-data">
 							<div class="right-content-overlay">';
+        $this->DB->query("SELECT `id`, `fullSeriesName`, `seoname`, `stillRelease`, (SELECT COUNT(id) FROM `episode` WHERE `episode`.`sid`=`series`.`id`) as `numrows` FROM `series` WHERE `active` = 'yes' AND `license` = 0 ORDER BY `id` DESC LIMIT 0, 5");
+
 		$i=1;
-		while($row = $result->fetch_assoc()){
+		foreach ($this->DB->results() as $key => &$row) {
 			$airing = 'finished';
 			if($row['stillRelease'] == 'yes'){
 				$airing = 'airing';

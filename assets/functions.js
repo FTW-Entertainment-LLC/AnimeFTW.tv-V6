@@ -239,7 +239,7 @@ $(document).ready(function() {
 			var d = new Date();
 			$.ajax({
 				type: "POST",
-				url: "/v6/ajax.php?action=search",
+				url: "/ajax.php?action=search",
 				data: $('#q').serialize(),
 				success: function(html) {
 					$("#inner-search-results").html(html);

@@ -17,7 +17,7 @@ class Content extends Config {
         
         // initialize the database connection, we won't actually use it till we call it up.
         include_once('db.class.php');
-        $this->DB = new DB($this->dbConnectionInfo());   
+        $this->DB = new DB($this->dbConnectionInfo());
 	}
 	
 	public function buildHeaderDetails()
@@ -154,7 +154,7 @@ class Content extends Config {
 						</div>
 						<div class="content-column two-wide">
 							<div style="height:305px;width:225px;float:right;margin-top:-68px;">
-								<img src=" 	//img03.animeftw.tv/chibi-fay.png" alt="" />
+								<img src="//img03.animeftw.tv/chibi-fay.png" alt="" />
 							</div>
 						</div>
 					</div>
@@ -164,53 +164,71 @@ class Content extends Config {
 	
 	private function footerColumnOne()
 	{
-		return '
-								<div class="footer-header economica bolded">
+        if ($this->UserArray['Level_access'] == 0) {
+            // users not logged in.
+            $contentLimits = ' AND `license` = 0 AND `aonly` = 0';
+        } elseif ($this->UserArray['Level_access'] == 3) {
+            // basic members
+            $contentLimits = ' `aonly` <= 1';
+        } else {
+            // everyone else, which should be staff and AMs
+            $contentLimits = '';
+        }
+        
+        $returnData = '
+                                <div class="footer-header economica">
 									Latest News
 								</div>
-								<div class="footer-body">
-									<div class="footer-entry">
-										<a href="/anime/chou-denji-machine-voltes-v/">Chou Denji Machine Voltes V</a>
-									</div>
-									<div class="footer-entry">
-										<a href="/anime/chou-denji-machine-voltes-v/">Chou Denji Machine Voltes V</a>
-									</div>
-									<div class="footer-entry">
-										<a href="/anime/chou-denji-machine-voltes-v/">Chou Denji Machine Voltes V</a>
-									</div>
-									<div class="footer-entry">
-										<a href="/anime/chou-denji-machine-voltes-v/">Chou Denji Machine Voltes V</a>
-									</div>
-									<div class="footer-entry">
-										<a href="/anime/chou-denji-machine-voltes-v/">Chou Denji Machine Voltes V</a>
-									</div>
+								<div class="footer-body">';
+                                
+        if ($this->UserArray['Level_acccess'] == 1 || $this->UserArray['Level_acccess'] == 2 || $this->UserArray['Level_acccess'] == 4 || $this->UserArray['Level_acccess'] == 5 || $this->UserArray['Level_acccess'] == 6) {
+			$addonquery = ' OR t.tfid=12 OR t.tfid=14';
+		} elseif ($this->UserArray['Level_acccess'] == 7) {
+			$addonquery = ' OR t.tfid=14';
+		} else {
+			$addonquery = '';
+		}
+		$this->DB->query("SELECT `tid`, `ttitle`, `tdate`, `fseo` FROM forums_threads as t, forums_forum as f WHERE (t.tfid='1' OR t.tfid='2' OR t.tfid='9'" . $addonquery . ") AND f.fid=t.tfid ORDER BY t.tid DESC LIMIT 0, 5");
+		foreach ($this->DB->results() as $key => &$row) {
+            $returnData .= '
+                                    <div class="footer-entry">
+										<a href="/forums/' . $row['fseo'] . '/topic-' . $row['tid'] . '/s-0" title="Posted on ' . date('l, F jS, Y @ h:ma',$this->timeZoneChange($row['tdate'],$this->UserArray['timeZone'])) . '">' . stripslashes($row['ttitle']) . '</a>
+									</div>';
+        }
+		$returnData .= '
 								</div>';
+        return $returnData;
 	}
 	
 	private function footerColumnTwo()
 	{
-		return '
-								<div class="footer-header economica">
+        if ($this->UserArray['Level_access'] == 0) {
+            // users not logged in.
+            $contentLimits = ' AND `license` = 0 AND `aonly` = 0';
+        } elseif ($this->UserArray['Level_access'] == 3) {
+            // basic members
+            $contentLimits = ' `aonly` <= 1';
+        } else {
+            // everyone else, which should be staff and AMs
+            $contentLimits = '';
+        }
+        
+        $returnData = '
+                                <div class="footer-header economica">
 									5 Random Anime
 								</div>
-								<div class="footer-body">
-									<div class="footer-entry">
-										<a href="/anime/chou-denji-machine-voltes-v/">Chou Denji Machine Voltes V</a>
-									</div>
-									<div class="footer-entry">
-										<a href="/anime/chou-denji-machine-voltes-v/">Chou Denji Machine Voltes V</a>
-									</div>
-									<div class="footer-entry">
-										<a href="/anime/chou-denji-machine-voltes-v/">Chou Denji Machine Voltes V</a>
-									</div>
-									<div class="footer-entry">
-										<a href="/anime/chou-denji-machine-voltes-v/">Chou Denji Machine Voltes V</a>
-									</div>
-									<div class="footer-entry">
-										<a href="/anime/chou-denji-machine-voltes-v/">Chou Denji Machine Voltes V</a>
-									</div>
-								</div>
-		';
+								<div class="footer-body">';
+        
+		$this->DB->query("SELECT `fullSeriesName`, `seoname` FROM `series` WHERE active='yes'" . $contentLimits . " ORDER BY RAND() LIMIT 5",TRUE);
+		foreach ($this->DB->results() as $key => &$row) {
+            $returnData .= '
+                                    <div class="footer-entry">
+										<a href="/anime/' . $row['seoname'] . '/">' . stripslashes($row['fullSeriesName']) . '</a>
+									</div>';
+        }
+		$returnData .= '
+								</div>';
+        return $returnData;
 	}
 	
 	private function footerColumnThree()

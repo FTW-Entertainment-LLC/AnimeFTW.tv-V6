@@ -342,7 +342,7 @@ a {
 	vertical-align:top;
 	width:704px;
 	display:inline-block;
-	margin-right:3px;
+    margin:5px 3px 0 0;
 }
 .news-article {
 	background-color:#0277bd;
@@ -365,14 +365,18 @@ a {
 	display:inline-block;
 	vertical-align:top;
 }
-.news-article-title-information {
+.news-article-title-information, .news-article-title-information a {
+    text-decoration:none;
 	display:inline-block;
 	vertical-align:top;
-	margin-top:5px;
+	margin-top:0px;
 	color:#ffffff;
+    font-size:12px;
+    font-style: italic;
 }
 .news-article-title {
     color:#fff;
+    margin-top:2px;
 }
 .news-article-title, .news-article-title a {
 	font-family: 'Economica', sans-serif;

@@ -540,27 +540,54 @@ class Content extends Config {
 					return $data;
 	}
 	
-	public function buildLeftColumnContent(){
-		$data = '
-		<div class="left-column-wrapper">
+	public function buildLeftColumnContent()
+    {
+        $data = '
+		<div class="left-column-wrapper">';
+        
+        if ($this->UserArray['Level_acccess'] == 1 || $this->UserArray['Level_acccess'] == 2 || $this->UserArray['Level_acccess'] == 4 || $this->UserArray['Level_acccess'] == 5 || $this->UserArray['Level_acccess'] == 6) {
+			$addonquery = "'1','2','9', '14'";
+		} elseif ($this->UserArray['Level_acccess'] == 7) {
+			$addonquery = "'1','2','9', '14'";
+		} else {
+			$addonquery = "'1','2','9'";
+		}
+        $query = "SELECT `tid`, `ttitle`, `tpid`, `tfid`, `tdate`, `ftitle`, `fseo`, `pbody`, `Username`, `display_name`, `avatarActivate`, `avatarExtension` FROM `forums_threads` INNER JOIN `forums_post` ON `forums_post`.`ptid`=`forums_threads`.`tid` INNER JOIN `forums_forum` ON `forums_forum`.`fid`=`forums_threads`.`tfid` INNER JOIN `users` ON `users`.`ID`=`forums_threads`.`tpid` WHERE `forums_threads`.`tfid` in (" . $addonquery . ") ORDER BY `tid` DESC LIMIT 0, 8";
+        $this->DB->query($query,TRUE);
+        foreach ($this->DB->results() as $key => &$row) {
+            if ($row['avatarActivate'] == 'yes') {
+                $avatar = '//img03.animeftw.tv/avatars/50x70/user' . $row['tpid'] . '.' . $row['avatarExtension'];
+            } else {
+                $avatar = '//img03.animeftw.tv/avatars/50x70/default.gif';
+            }
+            if ($row['display_name'] != NULL) {
+                $Username = $row['display_name'];
+            } else {
+                $Username = $row['Username'];
+            }
+            $data .= '
 			<div class="news-article">
 				<div class="news-article-header">
-					<div class="news-article-title">
-						This is an example title: testing.
-					</div>
-					<div class="news-article-title-information">
-						Posted on 12.12.12 by user1
-					</div>
+                    <div class="news-article-header-left" style="display:inline-block;">
+                        <div class="small-circular" style="background:url(\'' . $avatar . '\') no-repeat;background-position: center center;margin:5px 0 0 5px;"></div>
+                    </div>
+                    <div class="news-article-header-right" style="display:inline-block;">
+                        <div class="news-article-title">
+                            <a href="/forums/' . $row['fseo'] . '/topic-' . $row['tid'] . '/s-0">' . stripslashes($row['ttitle']) . '</a>
+                        </div>
+                        <div class="news-article-title-information">
+                            Posted on ' . date('m.d.y', $row['tdate']) . ' by <a href="/user/' . $row['Username'] . '">' . $Username . '</a>
+                        </div>
+                    </div>
 				</div>
 				<div class="news-article-body twelvefont opensans">
-					 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam congue dictum auctor. Etiam erat dui, eleifend eleifend placerat aliquet, pretium non ipsum. Aliquam non tempus felis. Aliquam cursus mauris id purus posuere pulvinar. Morbi lobortis luctus viverra. Sed egestas cursus ullamcorper. Vestibulum finibus congue tortor a vestibulum. Aliquam tincidunt augue et lorem elementum tempus. Donec sed mauris placerat, tincidunt nunc vel, lobortis lectus. Maecenas lorem arcu, vestibulum ut porta eget, condimentum id nisl. Proin gravida dapibus euismod. Proin at tristique lorem, quis pharetra neque. Duis a magna sed felis interdum faucibus. Donec dignissim sapien varius, ullamcorper sem in, ultricies lectus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Suspendisse convallis gravida velit quis fermentum.<br />
-<br />
-Morbi augue magna, gravida vel magna sit amet, ultrices luctus quam. Mauris maximus nulla velit, quis rhoncus tellus efficitur at. Aenean vitae purus tincidunt, hendrerit mauris ac, faucibus lectus. Pellentesque et ligula id elit porta fermentum. Aliquam fermentum felis magna, sed suscipit neque varius ac. In sit amet tellus et purus feugiat maximus. Etiam in lobortis magna. Quisque pellentesque ante a elit pulvinar, tempus vestibulum dui fringilla. Integer id justo vitae quam blandit molestie. Cras sit amet iaculis nisl. Morbi quis erat tincidunt, elementum velit eu, mattis ex. Ut aliquam aliquet arcu convallis dignissim. Cras volutpat, sapien et maximus rhoncus, magna urna venenatis massa, nec euismod ipsum nisi nec felis. Nullam pellentesque, massa eu faucibus ultricies, velit quam accumsan nibh, ut tristique quam magna non eros. Nulla vehicula scelerisque tristique. Sed nulla turpis, imperdiet et nisi ut, porttitor interdum felis.<br />
-<br />
-Praesent ullamcorper rutrum magna vitae ornare. Suspendisse rutrum hendrerit luctus. Nullam ac eros ac ipsum maximus placerat eu vitae enim. Morbi dapibus maximus nulla, eu dignissim felis viverra et. Nunc ac dignissim elit, non posuere velit. Sed lobortis velit in elit interdum, porta rhoncus orci tristique. Sed ut leo vitae magna viverra malesuada. In vitae vulputate metus. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Fusce non risus non massa tristique sollicitudin. Ut tempus dolor quis neque finibus vestibulum. Nunc pharetra dui a dui luctus accumsan. Morbi commodo elit velit, vitae molestie justo varius dignissim. Curabitur vehicula ac ipsum at dictum. Phasellus rhoncus iaculis justo, sit amet egestas neque maximus eu. <br />
+					' . $row['pbody'] . ' 
 				</div>
-			</div>
-		</div>';
+			</div>';
+        }
+		$data .= '
+        </div>';
 		return $data;
+        unset($data);
 	}
 }

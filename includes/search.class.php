@@ -91,7 +91,7 @@ class Search extends Config
     {
         if ($type == 'user') {
             if ($active == 'yes') {
-                return 'avatars/50x70/' . $id . '.' . $extension;
+                return 'avatars/50x70/user' . $id . '.' . $extension;
             } else {
                 return 'avatars/50x70/default.gif';
             }

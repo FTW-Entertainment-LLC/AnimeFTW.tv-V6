@@ -180,6 +180,8 @@ class Config
         } else {
             // user is not logged in, let's reject everything.
                 $this->UserArray['logged-in'] .= 0;
+                $this->UserArray['Level_access'] .= 0;
+                $this->UserArray['timeZone'] .= '-6';
         }
     }
     
@@ -548,4 +550,11 @@ class Config
 
         return $browser;
     }
+    
+    public function timeZoneChange($date,$timezone)
+    {
+        $timezone = (60*60)*($timezone+6);
+        $revisedDate = $date+($timezone);
+        return $revisedDate;
+    }    
 }
